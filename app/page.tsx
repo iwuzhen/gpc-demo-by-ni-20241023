@@ -1,101 +1,161 @@
-import Image from "next/image";
+"use client"
+
+import { Button, Flex, InputNumber, Space, Table, Typography } from "antd";
+import { useEffect, useState } from "react";
+
+
+import { AutoComplete, Input } from 'antd';
+import type { AutoCompleteProps, InputNumberProps } from 'antd';
+
+async function searchResult(title: string) {
+  try {
+    const url = 'https://wiki.lmd.knogen.com:10443/api/wiki/getMHQueryTitle';
+    const data = {
+      title,
+    };
+    const requestOptions = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    };
+    const response = await fetch(url, requestOptions)
+    const jsonData = await response.json();
+    if (jsonData?.msg === "success") {
+      return jsonData.data
+    }
+    return []
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [tableValue, setTableValue] = useState([] as any);
+  const [titleValue, setTitleValue] = useState("Mathematics");
+  const [sizeValue, setSizeValue] = useState(10);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+  const [loading, setLoading] = useState(true);
+
+  const [options, setOptions] = useState<AutoCompleteProps['options']>([]);
+
+
+
+  async function getDistance(title: string, size: number) {
+    try {
+      const url = 'https://wiki.lmd.knogen.com:10443/api/wiki/getWikiSomeXgd';
+      const data = {
+        title, size,
+      };
+      const requestOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      };
+      setLoading(true)
+      const response = await fetch(url, requestOptions)
+      const jsonData = await response.json();
+      if (jsonData?.msg === "success") {
+
+        // key: '1',
+        // STS: '胡彦斌',
+        // GoogleDistance: 32,
+        // TokenDistance: '西湖区湖底公园1号',
+        let result = []
+        for (let i in jsonData.data?.sts) {
+          result.push({
+            key: i,
+            STS: jsonData.data?.sts[i],
+            GoogleDistance: jsonData.data?.googledistance[i],
+            TokenDistance: jsonData.data?.avg_googledistance[i],
+          })
+        }
+        setLoading(false)
+        return result
+      }
+      setLoading(false)
+      return []
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }
+
+  const handleSearch = async (value: string) => {
+    const result = await searchResult(value);
+    console.log(result)
+    setOptions(result ? result.map((item: string) => ({ value: item })) : []);
+  };
+
+  const updateTable = async () => {
+    const result = await getDistance(titleValue, sizeValue);
+    if (result)
+      setTableValue(result as any)
+  }
+  const onSelect = async (value: string) => {
+    console.log('onSelect', value);
+    setTitleValue(value)
+    updateTable()
+  };
+
+  const onChange: InputNumberProps['onChange'] = (value: any) => {
+    setSizeValue(value)
+    updateTable()
+  };
+
+
+  const columns = [
+    {
+      title: 'STS',
+      dataIndex: 'STS',
+      key: 'STS',
+    },
+    {
+      title: 'Google distance',
+      dataIndex: 'GoogleDistance',
+      key: 'GoogleDistance',
+    },
+    {
+      title: 'Token distance',
+      dataIndex: 'TokenDistance',
+      key: 'TokenDistance',
+    },
+  ];
+
+  useEffect(() => {
+    updateTable()
+  }, [])
+
+  return (
+
+    <Flex vertical className="p-10">
+      <Typography.Title level={2}>文本相似度</Typography.Title>
+
+      <Flex>
+        <AutoComplete
+          popupMatchSelectWidth={252}
+          defaultValue={titleValue}
+          style={{ width: 300 }}
+          options={options}
+          onSelect={onSelect}
+          onSearch={handleSearch}
+          size="large"
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <Input.Search size="large" placeholder="Search Wikipedia" enterButton />
+        </AutoComplete>
+        <div className="w-10"></div>
+        <InputNumber
+          min={10}
+          max={100}
+          size="middle"
+          prefix="size:"
+          defaultValue={sizeValue}
+          onChange={onChange} changeOnWheel />
+      </Flex>
+      <Table dataSource={tableValue} loading={loading} columns={columns} className="mt-10" />;
+    </Flex>
   );
 }
