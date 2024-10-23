@@ -1,6 +1,6 @@
 "use client"
 
-import { Button, Flex, InputNumber, Space, Table, Typography } from "antd";
+import { Flex, InputNumber, Table, Typography } from "antd";
 import { useEffect, useState } from "react";
 
 
@@ -65,8 +65,8 @@ export default function Home() {
         // STS: '胡彦斌',
         // GoogleDistance: 32,
         // TokenDistance: '西湖区湖底公园1号',
-        let result = []
-        for (let i in jsonData.data?.sts) {
+        const result: any = []
+        for (const i in jsonData.data?.sts) {
           result.push({
             key: i,
             STS: jsonData.data?.sts[i],
