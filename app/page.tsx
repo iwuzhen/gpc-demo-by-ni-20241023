@@ -35,7 +35,7 @@ async function searchResult(title: string) {
 export default function Home() {
   const [tableValue, setTableValue] = useState([] as any);
   const [titleValue, setTitleValue] = useState("Mathematics");
-  const [sizeValue, setSizeValue] = useState(10);
+  const [sizeValue, setSizeValue] = useState(50);
 
   const [loading, setLoading] = useState(true);
 
@@ -61,10 +61,6 @@ export default function Home() {
       const jsonData = await response.json();
       if (jsonData?.msg === "success") {
 
-        // key: '1',
-        // STS: '胡彦斌',
-        // GoogleDistance: 32,
-        // TokenDistance: '西湖区湖底公园1号',
         const result: any = []
         for (const i in jsonData.data?.sts) {
           result.push({
@@ -130,32 +126,39 @@ export default function Home() {
   }, [])
 
   return (
+    <>
+      <Flex vertical className="p-10 ">
+        <Typography.Title level={2}>文本相似度</Typography.Title>
 
-    <Flex vertical className="p-10">
-      <Typography.Title level={2}>文本相似度</Typography.Title>
+        <Flex>
+          <AutoComplete
+            popupMatchSelectWidth={252}
+            defaultValue={titleValue}
+            style={{ width: 300 }}
+            options={options}
+            onSelect={onSelect}
+            onSearch={handleSearch}
+            size="large"
 
-      <Flex>
-        <AutoComplete
-          popupMatchSelectWidth={252}
-          defaultValue={titleValue}
-          style={{ width: 300 }}
-          options={options}
-          onSelect={onSelect}
-          onSearch={handleSearch}
-          size="large"
-        >
-          <Input.Search size="large" placeholder="Search Wikipedia" enterButton />
-        </AutoComplete>
-        <div className="w-10"></div>
-        <InputNumber
-          min={10}
-          max={100}
-          size="middle"
-          prefix="size:"
-          defaultValue={sizeValue}
-          onChange={onChange} changeOnWheel />
+          >
+            <Input size="large" placeholder="Search Wikipedia" allowClear />
+          </AutoComplete>
+          <div className="w-10"></div>
+          <InputNumber
+            min={10}
+            max={100}
+            size="middle"
+            prefix="size:"
+            defaultValue={sizeValue}
+            onChange={onChange} changeOnWheel />
+        </Flex>
+        <Table dataSource={tableValue} size="middle" loading={loading} columns={columns} className="mt-10" />;
       </Flex>
-      <Table dataSource={tableValue} loading={loading} columns={columns} className="mt-10" />;
-    </Flex>
+      <footer>
+        <Flex justify="center" align="center" className="p-10">
+          <a target="_blank" href="https://github.com/iwuzhen/gpc-demo-by-ni-20241023">Github</a>
+        </Flex>
+      </footer>
+    </>
   );
 }
