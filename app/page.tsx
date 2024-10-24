@@ -32,7 +32,7 @@ async function searchResult(title: string) {
 }
 
 type TableDataType = {
-  key: string;
+  key: number;
   STS: string;
   GoogleDistance: string;
   TokenDistance: string;
@@ -67,9 +67,9 @@ export default function Home() {
       if (jsonData?.msg === "success") {
 
         const result: any = []
-        for (const i in jsonData.data?.sts) {
+        for (let i = 0; i < jsonData.data?.sts.length; i += 1) {
           result.push({
-            key: i,
+            key: i + 1,
             STS: jsonData.data?.sts[i],
             GoogleDistance: jsonData.data?.googledistance[i],
             TokenDistance: jsonData.data?.avg_googledistance[i],
@@ -110,6 +110,11 @@ export default function Home() {
 
 
   const columns = [
+    {
+      title: 'Index',
+      dataIndex: 'key',
+      key: 'key',
+    },
     {
       title: 'STS',
       dataIndex: 'STS',
