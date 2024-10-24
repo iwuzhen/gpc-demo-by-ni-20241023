@@ -31,9 +31,15 @@ async function searchResult(title: string) {
   }
 }
 
+type TableDataType = {
+  key: string;
+  STS: string;
+  GoogleDistance: string;
+  TokenDistance: string;
+};
 
 export default function Home() {
-  const [tableValue, setTableValue] = useState([] as any);
+  const [tableValue, setTableValue] = useState<TableDataType[]>([]);
   const [titleValue, setTitleValue] = useState("Mathematics");
   const [sizeValue, setSizeValue] = useState(50);
 
@@ -42,8 +48,7 @@ export default function Home() {
   const [options, setOptions] = useState<AutoCompleteProps['options']>([]);
 
 
-
-  async function getDistance(title: string, size: number) {
+  async function getDistance(title: string, size: number): Promise<TableDataType[]> {
     try {
       const url = 'https://wiki.lmd.knogen.com:10443/api/wiki/getWikiSomeXgd';
       const data = {
@@ -78,6 +83,7 @@ export default function Home() {
     } catch (error) {
       console.error('Error fetching data:', error);
     }
+    return []
   }
 
   const handleSearch = async (value: string) => {
@@ -86,21 +92,21 @@ export default function Home() {
     setOptions(result ? result.map((item: string) => ({ value: item })) : []);
   };
 
-  const updateTable = async () => {
-    const result = await getDistance(titleValue, sizeValue);
-    if (result)
-      setTableValue(result as any)
-  }
   const onSelect = async (value: string) => {
-    console.log('onSelect', value);
     setTitleValue(value)
-    updateTable()
   };
 
   const onChange: InputNumberProps['onChange'] = (value: any) => {
     setSizeValue(value)
-    updateTable()
   };
+
+  const updateTable = async () => {
+    const result = await getDistance(titleValue, sizeValue);
+    setTableValue(result)
+  }
+  useEffect(() => {
+    updateTable()
+  }, [sizeValue, titleValue])
 
 
   const columns = [
@@ -120,10 +126,6 @@ export default function Home() {
       key: 'TokenDistance',
     },
   ];
-
-  useEffect(() => {
-    updateTable()
-  }, [])
 
   return (
     <>
